@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="theme-color" content="#060610">
+<meta property="og:title" content="Void Runner — ArcadeFlash">
+<meta property="og:description" content="Float. Dodge. Survive. Zero installs.">
+<meta property="og:image" content="https://arcadeflash.fun/og-image.png">
+<meta property="og:url" content="https://arcadeflash.fun/void-runner">
+<link rel="canonical" href="https://arcadeflash.fun/void-runner">
+<title>Void Runner — ArcadeFlash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<!-- Sentry — add DSN before soft launch -->
+<!-- <script src="https://js.sentry-cdn.com/YOUR_DSN.min.js" crossorigin="anonymous"></script> -->
+<!-- Firebase Analytics — initialized in game.js -->
+</head>
+<body>
+
+<!-- Game canvas -->
+<canvas id="cv"></canvas>
+
+<!-- Visual overlays -->
+<div id="scanlines"></div>
+<div id="vignette"></div>
+<div id="flash"></div>
+
+<!-- Score card HUD -->
+<div id="score-card">
+  <div id="sc-left">
+    <div id="sc-score-lbl">SCORE</div>
+    <div id="sc-score-wrap">
+      <div id="sc-score">0</div>
+      <div id="sc-multi" style="display:none"></div>
+    </div>
+  </div>
+  <div id="sc-center">
+    <div id="sc-sector-lbl">SECTOR</div>
+    <div id="sc-sector">1</div>
+    <div id="sc-sector-name">TRAINING ZONE</div>
+  </div>
+  <div id="sc-right">
+    <div id="sc-best-lbl">BEST</div>
+    <div id="sc-best">—</div>
+  </div>
+  <button id="btn-mute" class="btn-mute" title="Mute / Unmute" aria-label="Toggle sound">🔊</button>
+</div>
+
+<!-- Danger bar — fills red as active meteor count rises -->
+<div id="danger-bar"><div id="danger-bar-fill"></div></div>
+
+<!-- Main overlay — idle and death screens -->
+<div id="overlay">
+
+  <!-- Idle screen -->
+  <div id="screen-idle" class="screen-card">
+
+    <!-- Streak badge — hidden until streak > 1 -->
+    <div id="streak-bar" style="display:none">
+      <span id="streak-count"></span>
+    </div>
+
+    <div class="logo-wrap">
+      <div class="logo-title">VOID<span>RUNNER</span></div>
+      <div class="logo-sub">Float. Dodge. Survive.</div>
+    </div>
+
+    <canvas id="ship-preview" width="80" height="40"></canvas>
+
+    <div class="ctrl-diagram">
+      <div class="zone-vis">
+        <div class="zv-left"><span class="zv-icon">◀</span><span class="zv-lbl">STEER</span></div>
+        <div class="zv-mid">
+          <div class="zv-top"><span class="zv-icon">▲</span><span class="zv-lbl">THRUST</span></div>
+          <div class="zv-bot"><span class="zv-lbl-dim">gravity pulls down</span></div>
+        </div>
+        <div class="zv-right"><span class="zv-icon">▶</span><span class="zv-lbl">STEER</span></div>
+      </div>
+      <p class="ctrl-note">⌨ SPACE · ARROWS · WASD also work</p>
+    </div>
+
+    <button class="btn-primary" id="btn-play">▶ LAUNCH</button>
+
+    <!-- UFO Skin selector -->
+    <div class="skin-section">
+      <p class="skin-label">UFO SKIN</p>
+      <div id="skin-row"></div>
+      <p id="next-unlock-hint" class="next-unlock-hint"></p>
+    </div>
+
+    <p class="sub-hint">Dodge meteors · Score = meteors survived</p>
+  </div>
+
+  <!-- Death screen -->
+  <div id="screen-death" class="screen-card" style="display:none">
+    <p class="death-title">SHIP DESTROYED</p>
+    <div id="death-score" class="death-score-val">0</div>
+    <p id="death-sector-label" class="death-sector-label">SECTOR 1 — TRAINING ZONE</p>
+    <p class="death-score-label">meteors survived</p>
+    <div id="new-best-badge" class="new-best-badge" style="display:none">✦ New Record!</div>
+    <div class="stats-row">
+      <div class="stat-block"><span id="stat-best">—</span><label>Best</label></div>
+      <div class="stat-block"><span id="stat-closecalls">0</span><label>Close Calls</label></div>
+      <div class="stat-block"><span id="stat-time">0s</span><label>Time</label></div>
+    </div>
+    <p id="death-motivation"></p>
+    <p id="next-milestone" class="next-milestone"></p>
+
+    <!-- Missions panel -->
+    <div class="missions-panel">
+      <p class="missions-label">MISSIONS</p>
+      <div id="missions-list"></div>
+    </div>
+
+    <button class="btn-primary" id="btn-retry">↺ PLAY AGAIN</button>
+    <button class="btn-share"   id="btn-share">⬆ SHARE SCORE</button>
+  </div>
+
+</div>
+
+<!-- Error screen (shown if JS crashes) -->
+<div id="error-screen" style="display:none;position:fixed;inset:0;background:#060610;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:16px">
+  <p style="font-family:monospace;color:#FF4444;font-size:14px">Something crashed. Refresh to retry.</p>
+  <button onclick="location.reload()" style="font-family:monospace;padding:10px 20px;background:#00FFC8;border:none;border-radius:6px;cursor:pointer;font-size:13px">RELOAD</button>
+</div>
+
+<script type="module" src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+/* ArcadeFlash — Void Runner — style.css */
+:root {
+  --bg:     #060610;
+  --surface:#0A0F1E;
+  --cyan:   #00FFC8;
+  --cyan-g: rgba(0,255,200,0.5);
+  --cyan-d: rgba(0,255,200,0.12);
+  --gold:   #FFB800;
+  --red:    #FF4444;
+  --text:   #F0F8FF;
+  --muted:  rgba(178,210,232,0.78);
+  --border: rgba(0,255,200,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Exo 2',sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;position:absolute;top:0;left:0;cursor:crosshair}
+
+/* Overlays */
+#scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,200,.016) 2px,rgba(0,255,200,.016) 4px);pointer-events:none;z-index:3}
+#vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.75) 100%);pointer-events:none;z-index:2}
+#flash{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:8}
+
+/* ── Score card HUD ───────────────────────────────────────────── */
+#score-card{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:11px 44px 11px 16px;
+  background:linear-gradient(180deg,rgba(6,6,16,0.90) 0%,transparent 100%);
+  pointer-events:none;z-index:10;user-select:none;
+}
+#sc-left {display:flex;flex-direction:column;align-items:flex-start}
+#sc-right{display:flex;flex-direction:column;align-items:flex-end}
+#sc-center{display:flex;flex-direction:column;align-items:center}
+#sc-score-lbl,#sc-best-lbl,#sc-sector-lbl{
+  font-family:'Orbitron',monospace;font-size:9px;
+  letter-spacing:.14em;color:rgba(205,230,245,0.80);text-transform:uppercase;line-height:1;
+}
+#sc-score-wrap{position:relative;display:flex;align-items:center;gap:6px}
+#sc-score{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(26px,6.5vw,44px);font-weight:900;
+  color:var(--cyan);text-shadow:0 0 14px var(--cyan-g);
+  line-height:1;transition:color .3s,text-shadow .3s;
+}
+#sc-score.gold   {color:var(--gold);text-shadow:0 0 18px rgba(255,184,0,.75)}
+#sc-score.warning{color:#FF8C00;text-shadow:0 0 18px rgba(255,140,0,.70);transition:color .4s,text-shadow .4s}
+#sc-score.danger {color:#FF3E3E;text-shadow:0 0 20px rgba(255,40,0,.80);animation:scoreDanger .75s ease-in-out infinite}
+@keyframes scoreDanger{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.78;transform:scale(0.97)}}
+#sc-best  {font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:rgba(230,245,255,0.88)}
+#sc-sector{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:rgba(0,255,200,0.82);text-shadow:0 0 10px rgba(0,255,200,0.32)}
+#sc-sector-name{font-family:'Orbitron',monospace;font-size:8px;font-weight:400;letter-spacing:.10em;color:rgba(0,255,200,0.55);text-transform:uppercase;margin-top:2px}
+
+/* Multiplier badge */
+#sc-multi{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:900;
+  color:#FF8020;text-shadow:0 0 10px rgba(255,120,0,0.70);
+  background:rgba(255,120,0,0.12);border:1px solid rgba(255,120,0,0.28);
+  border-radius:6px;padding:2px 7px;line-height:1.4;
+  animation:multiBadge .6s ease-in-out infinite alternate;
+}
+@keyframes multiBadge{0%{opacity:.75;transform:scale(.96)}100%{opacity:1;transform:scale(1.04)}}
+
+/* ── Mute button ──────────────────────────────────────────────── */
+.btn-mute{
+  position:absolute;top:8px;right:10px;
+  background:transparent;border:none;
+  font-size:17px;line-height:1;
+  cursor:pointer;pointer-events:auto;
+  opacity:0.72;transition:opacity .18s, transform .15s;
+  padding:4px;border-radius:6px;
+}
+.btn-mute:hover{opacity:1;transform:scale(1.12)}
+.btn-mute.muted{opacity:0.38}
+
+/* ── Danger bar ───────────────────────────────────────────────── */
+#danger-bar{
+  position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:rgba(255,255,255,0.04);
+  pointer-events:none;z-index:10;
+}
+#danger-bar-fill{
+  height:100%;width:0%;
+  background:#00FFC8;
+  transition:width .18s ease, background .25s ease;
+}
+
+/* ── Main overlay ─────────────────────────────────────────────── */
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:rgba(6,6,16,.88);backdrop-filter:blur(4px)}
+#overlay.hid{display:none}
+
+/* Screen cards */
+.screen-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,3.5vw,28px) clamp(16px,4vw,32px);width:min(400px,92vw);display:flex;flex-direction:column;align-items:center;gap:0;animation:cardIn .3s cubic-bezier(.34,1.56,.64,1);max-height:96vh;overflow-y:auto}
+@keyframes cardIn{from{transform:scale(.85) translateY(14px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+
+/* ── Streak bar ───────────────────────────────────────────────── */
+#streak-bar{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,140,0,0.10);border:1px solid rgba(255,140,0,0.25);
+  border-radius:99px;padding:4px 14px;margin-bottom:10px;
+}
+#streak-count{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
+  color:#FF9A20;letter-spacing:.08em;
+}
+
+/* Idle screen */
+.logo-wrap{text-align:center;margin-bottom:12px}
+.logo-title{font-family:'Orbitron',monospace;font-size:clamp(26px,7.5vw,44px);font-weight:900;color:var(--text);letter-spacing:.02em;line-height:1}
+.logo-title span{color:var(--cyan);text-shadow:0 0 20px var(--cyan-g)}
+.logo-sub{font-size:clamp(11px,2.6vw,14px);color:rgba(208,232,248,0.84);letter-spacing:.13em;text-transform:uppercase;margin-top:6px}
+#ship-preview{display:block;margin:10px auto 12px}
+
+/* ── Touch zone control diagram ───────────────────────────────── */
+.ctrl-diagram{width:100%;margin-bottom:12px}
+.zone-vis{
+  display:flex;height:72px;border-radius:8px;overflow:hidden;
+  border:1px solid var(--border);gap:1px;background:var(--border);
+}
+.zv-left,.zv-right{
+  flex:0 0 28%;background:var(--cyan-d);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+}
+.zv-mid{flex:1;display:flex;flex-direction:column;gap:1px}
+.zv-top{
+  flex:0 0 58%;background:rgba(0,255,200,0.09);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.zv-bot{
+  flex:1;background:rgba(255,255,255,0.025);
+  display:flex;align-items:center;justify-content:center;
+}
+.zv-icon{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;color:#39FFE0;text-shadow:0 0 10px rgba(0,255,200,0.55)}
+.zv-lbl{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:rgba(218,240,252,0.82)}
+.zv-lbl-dim{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(190,218,235,0.68)}
+.ctrl-note{font-size:11px;color:rgba(205,230,245,.76);letter-spacing:.06em;margin-top:8px;text-align:center}
+.sub-hint{font-size:11px;color:rgba(205,230,245,.78);letter-spacing:.06em;margin-top:8px}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* ── UFO Skin selector ────────────────────────────────────────── */
+.skin-section{width:100%;margin:10px 0 6px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.skin-label{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(0,255,200,0.55)}
+#skin-row{display:flex;gap:6px;flex-wrap:nowrap;justify-content:center;width:100%}
+
+.skin-btn{
+  flex:1;min-width:0;max-width:72px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:7px 4px 5px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:9px;cursor:pointer;
+  transition:all .18s;color:rgba(200,220,240,0.80);
+  font-family:'Exo 2',sans-serif;
+}
+.skin-btn:hover{background:rgba(255,255,255,0.08);border-color:var(--sc,rgba(0,255,200,.35));transform:translateY(-2px)}
+.skin-btn.active{
+  background:rgba(255,255,255,0.07);
+  border-color:var(--sc,var(--cyan));
+  box-shadow:0 0 10px rgba(0,0,0,0.2),0 0 0 1px var(--sc,var(--cyan));
+}
+.skin-btn.locked{opacity:0.45;cursor:default}
+.skin-btn.locked:hover{transform:none;background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.10)}
+.skin-dot-icon{font-size:16px;line-height:1;color:var(--sc,var(--cyan))}
+.skin-btn.locked .skin-dot-icon{color:rgba(180,200,220,0.5)}
+.skin-name{font-size:8px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:rgba(200,225,240,0.70)}
+.skin-btn.active .skin-name{color:var(--sc,var(--cyan))}
+
+.next-unlock-hint{
+  font-size:10px;color:rgba(180,210,230,0.55);letter-spacing:.06em;
+  text-align:center;line-height:1.4;
+}
+
+/* ── Death screen ─────────────────────────────────────────────── */
+.death-title{font-family:'Orbitron',monospace;font-size:clamp(12px,3vw,16px);letter-spacing:.18em;text-transform:uppercase;color:rgba(220,240,252,0.86);margin-bottom:6px}
+.death-score-val{font-family:'Orbitron',monospace;font-size:clamp(48px,12vw,68px);font-weight:900;color:var(--cyan);line-height:1;text-shadow:0 0 22px var(--cyan-g);margin-bottom:2px}
+.death-sector-label{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,255,200,0.86);text-shadow:0 0 10px rgba(0,255,200,0.34);margin-bottom:3px}
+.death-score-label{font-size:12px;font-weight:600;letter-spacing:.10em;color:rgba(205,230,245,0.78);text-transform:uppercase;margin-bottom:12px}
+.new-best-badge{background:rgba(0,255,200,.1);border:1px solid rgba(0,255,200,.3);color:var(--cyan);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;border-radius:99px;margin-bottom:12px;animation:nbp 1s ease-in-out infinite}
+@keyframes nbp{0%,100%{box-shadow:0 0 0 rgba(0,255,200,.3)}50%{box-shadow:0 0 14px rgba(0,255,200,.4)}}
+.stats-row{display:flex;gap:7px;width:100%;margin-bottom:10px}
+.stat-block{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px;text-align:center}
+.stat-block span{display:block;font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#F4FBFF;text-shadow:0 0 8px rgba(180,220,255,0.20)}
+.stat-block label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(190,218,235,0.78);margin-top:3px}
+#death-motivation{font-size:12px;text-align:center;margin-bottom:8px;letter-spacing:.04em;line-height:1.5;color:rgba(190,224,245,0.88);padding:0 4px}
+.next-milestone{font-family:'Orbitron',monospace;font-size:10px;text-align:center;letter-spacing:.08em;color:rgba(255,184,0,0.72);margin-bottom:10px;min-height:14px}
+.restart-hint{font-family:'Orbitron',monospace;font-size:clamp(10px,2.8vw,12px);letter-spacing:.18em;color:var(--muted);text-transform:uppercase;animation:pulse 1.3s ease-in-out infinite}
+
+/* ── Missions panel ───────────────────────────────────────────── */
+.missions-panel{width:100%;margin-bottom:12px}
+.missions-label{
+  font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(0,255,200,0.50);text-align:left;margin-bottom:6px;
+}
+#missions-list{display:flex;flex-direction:column;gap:5px;width:100%}
+.mission-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:7px;padding:7px 10px;gap:8px;
+}
+.mission-item.completed{
+  background:rgba(0,255,200,0.06);
+  border-color:rgba(0,255,200,0.22);
+}
+.mission-info{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.mission-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:rgba(220,240,255,0.90);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mission-item.completed .mission-name{color:var(--cyan)}
+.mission-desc{font-size:10px;color:rgba(180,210,230,0.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mission-state{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:.10em;color:var(--cyan);white-space:nowrap;flex-shrink:0}
+.all-done{font-family:'Orbitron',monospace;font-size:10px;color:var(--gold);text-align:center;letter-spacing:.08em;padding:8px 0}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.btn-primary{
+  width:100%;padding:12px;margin-bottom:8px;
+  background:linear-gradient(135deg,#00D4AA,#0055DD);
+  border:none;border-radius:10px;
+  font-family:'Orbitron',monospace;font-size:15px;font-weight:900;
+  color:#fff;cursor:pointer;letter-spacing:.06em;
+  box-shadow:0 4px 18px rgba(0,200,180,.3);
+  transition:transform .15s,box-shadow .15s;pointer-events:auto;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,200,180,.45)}
+.btn-primary:active{transform:scale(.97)}
+.btn-share{
+  width:100%;padding:11px;
+  background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.28);
+  border-radius:10px;font-family:'Orbitron',monospace;font-size:13px;
+  font-weight:700;color:var(--gold);cursor:pointer;letter-spacing:.06em;
+  transition:all .15s;pointer-events:auto;
+}
+.btn-share:hover{background:rgba(255,184,0,.16)}
+
+/* ── Toast notification ───────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:rgba(0,255,200,0.12);border:1px solid rgba(0,255,200,0.28);
+  color:var(--cyan);font-family:'Orbitron',monospace;font-size:11px;
+  padding:10px 18px;border-radius:8px;pointer-events:none;z-index:999;
+  animation:toastFade 2.2s forwards;white-space:nowrap;
+}
+@keyframes toastFade{
+  0%  {opacity:0;transform:translateX(-50%) translateY(10px)}
+  15% {opacity:1;transform:translateX(-50%) translateY(0)}
+  75% {opacity:1}
+  100%{opacity:0;transform:translateX(-50%) translateY(-6px)}
+}
