@@ -725,17 +725,32 @@ function renderMissions(stats) {
     const isJustDone = justCompleted.includes(def);
     const div = document.createElement('div');
     div.className = `mission-item ${isJustDone ? 'completed' : ''}`;
-    div.innerHTML = `
-      <div class="mission-info">
-        <span class="mission-name">${isJustDone ? '✓ ' : ''}${def.name}</span>
-        <span class="mission-desc">${def.desc}</span>
-      </div>
-      <span class="mission-state">${isJustDone ? 'DONE' : ''}</span>`;
+
+    const info = document.createElement('div');
+    info.className = 'mission-info';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'mission-name';
+    nameSpan.textContent = (isJustDone ? '✓ ' : '') + def.name;
+    const descSpan = document.createElement('span');
+    descSpan.className = 'mission-desc';
+    descSpan.textContent = def.desc;
+    info.appendChild(nameSpan);
+    info.appendChild(descSpan);
+
+    const stateSpan = document.createElement('span');
+    stateSpan.className = 'mission-state';
+    stateSpan.textContent = isJustDone ? 'DONE' : '';
+
+    div.appendChild(info);
+    div.appendChild(stateSpan);
     list.appendChild(div);
   });
   // If all missions done
   if (toShow.length === 0) {
-    list.innerHTML = '<p class="all-done">✦ All missions complete — Legend!</p>';
+    const p = document.createElement('p');
+    p.className = 'all-done';
+    p.textContent = '✦ All missions complete — Legend!';
+    list.appendChild(p);
   }
 }
 
@@ -930,5 +945,7 @@ updateHUD();
 
 const muteBtn = document.getElementById('btn-mute');
 if (muteBtn) muteBtn.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
+
+document.getElementById('btn-error-reload')?.addEventListener('click', () => location.reload());
 
 requestAnimationFrame(ts => { lastTs = ts; loop(ts); });

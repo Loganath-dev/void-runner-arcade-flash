@@ -12,7 +12,13 @@ const K = {
 };
 
 export class StorageUtils {
-  static _h(n) { return String((n * 7919) ^ (navigator.userAgent.length + screen.width)); }
+  // djb2 hash with embedded salt — not cryptographic but not trivially reversible from observable values
+  static _h(n) {
+    const s = 'vr·' + n + '·arcadeflash·2024·xk9m';
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = Math.imul((h << 5) + h, 1) ^ s.charCodeAt(i);
+    return (h >>> 0).toString(36);
+  }
 
   // ── Best score ──────────────────────────────────────────────────────
   static getBest() {
@@ -25,7 +31,16 @@ export class StorageUtils {
   static clearBest() { localStorage.removeItem(K.BEST); localStorage.removeItem(K.BEST_HASH); }
 
   // ── Ghost run (position-based replay) ───────────────────────────────
-  static getGhostPath()   { try { const r = localStorage.getItem(K.GHOST_PATH); return r ? JSON.parse(r) : null; } catch { return null; } }
+  static getGhostPath() {
+    try {
+      const r = localStorage.getItem(K.GHOST_PATH);
+      if (!r) return null;
+      const path = JSON.parse(r);
+      if (!Array.isArray(path)) return null;
+      return path.every(p => p && typeof p.x === 'number' && typeof p.y === 'number' && isFinite(p.x) && isFinite(p.y))
+        ? path : null;
+    } catch { return null; }
+  }
   static setGhostPath(p)  { try { localStorage.setItem(K.GHOST_PATH, JSON.stringify(p)); } catch(e) { localStorage.removeItem(K.GHOST_PATH); } }
   static getGhostScore()  { return parseInt(localStorage.getItem(K.GHOST_SCORE) || '0', 10); }
   static setGhostScore(s) { localStorage.setItem(K.GHOST_SCORE, String(s)); }

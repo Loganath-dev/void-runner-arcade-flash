@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <meta name="theme-color" content="#060610">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.google-analytics.com; frame-src 'none'; object-src 'none';">
 <meta property="og:title" content="Void Runner — ArcadeFlash">
 <meta property="og:description" content="Float. Dodge. Survive. Zero installs.">
 <meta property="og:image" content="https://arcadeflash.fun/og-image.png">
@@ -123,7 +124,7 @@
 <!-- Error screen (shown if JS crashes) -->
 <div id="error-screen" style="display:none;position:fixed;inset:0;background:#060610;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:16px">
   <p style="font-family:monospace;color:#FF4444;font-size:14px">Something crashed. Refresh to retry.</p>
-  <button onclick="location.reload()" style="font-family:monospace;padding:10px 20px;background:#00FFC8;border:none;border-radius:6px;cursor:pointer;font-size:13px">RELOAD</button>
+  <button id="btn-error-reload" style="font-family:monospace;padding:10px 20px;background:#00FFC8;border:none;border-radius:6px;cursor:pointer;font-size:13px">RELOAD</button>
 </div>
 
 <script type="module" src="game.js"></script>
