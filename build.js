@@ -2,7 +2,7 @@
 // Reads Firebase config from environment variables → writes config.js
 // config.js is in .gitignore and never committed to source control
 
-const fs = require('fs');
+import { writeFileSync } from 'fs';
 
 const required = [
   'FIREBASE_API_KEY',
@@ -32,5 +32,5 @@ export const FIREBASE_CONFIG = {
 };
 `;
 
-fs.writeFileSync('config.js', config);
+writeFileSync('config.js', config);
 console.log('config.js generated successfully.');
