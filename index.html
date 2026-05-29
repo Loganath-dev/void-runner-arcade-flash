@@ -63,6 +63,11 @@
       <span id="streak-count"></span>
     </div>
 
+    <!-- Yesterday score — hidden until data exists -->
+    <div id="yesterday-bar" style="display:none">
+      <span id="yesterday-label"></span>
+    </div>
+
     <div class="logo-wrap">
       <div class="logo-title">VOID<span>RUNNER</span></div>
       <div class="logo-sub">Float. Dodge. Survive.</div>
@@ -94,29 +99,34 @@
     <p class="sub-hint">Dodge meteors · Score = meteors survived</p>
   </div>
 
-  <!-- Death screen -->
+  <!-- Death screen — simplified: score + delta + retry front-and-centre -->
   <div id="screen-death" class="screen-card" style="display:none">
     <p class="death-title">SHIP DESTROYED</p>
     <div id="death-score" class="death-score-val">0</div>
-    <p id="death-sector-label" class="death-sector-label">SECTOR 1 — TRAINING ZONE</p>
-    <p class="death-score-label">meteors survived</p>
     <div id="new-best-badge" class="new-best-badge" style="display:none">✦ New Record!</div>
-    <div class="stats-row">
-      <div class="stat-block"><span id="stat-best">—</span><label>Best</label></div>
-      <div class="stat-block"><span id="stat-closecalls">0</span><label>Close Calls</label></div>
-      <div class="stat-block"><span id="stat-time">0s</span><label>Time</label></div>
-    </div>
-    <p id="death-motivation"></p>
-    <p id="next-milestone" class="next-milestone"></p>
-
-    <!-- Missions panel -->
-    <div class="missions-panel">
-      <p class="missions-label">MISSIONS</p>
-      <div id="missions-list"></div>
-    </div>
+    <p id="death-delta" class="death-delta"></p>
 
     <button class="btn-primary" id="btn-retry">↺ PLAY AGAIN</button>
-    <button class="btn-share"   id="btn-share">⬆ SHARE SCORE</button>
+
+    <button id="btn-details-toggle" class="btn-details-toggle">Details ▾</button>
+
+    <!-- Collapsible details -->
+    <div id="death-details" style="display:none;width:100%">
+      <p id="death-sector-label" class="death-sector-label">SECTOR 1 — TRAINING ZONE</p>
+      <p class="death-score-label">meteors survived</p>
+      <div class="stats-row">
+        <div class="stat-block"><span id="stat-best">—</span><label>Best</label></div>
+        <div class="stat-block"><span id="stat-closecalls">0</span><label>Close Calls</label></div>
+        <div class="stat-block"><span id="stat-time">0s</span><label>Time</label></div>
+      </div>
+      <p id="death-motivation"></p>
+      <p id="next-milestone" class="next-milestone"></p>
+      <div class="missions-panel">
+        <p class="missions-label">MISSIONS</p>
+        <div id="missions-list"></div>
+      </div>
+      <button class="btn-share" id="btn-share">⬆ SHARE SCORE</button>
+    </div>
   </div>
 
 </div>

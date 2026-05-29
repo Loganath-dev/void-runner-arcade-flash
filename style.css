@@ -96,11 +96,22 @@ canvas{display:block;position:absolute;top:0;left:0;cursor:crosshair}
 #streak-bar{
   display:flex;align-items:center;gap:6px;
   background:rgba(255,140,0,0.10);border:1px solid rgba(255,140,0,0.25);
-  border-radius:99px;padding:4px 14px;margin-bottom:10px;
+  border-radius:99px;padding:4px 14px;margin-bottom:6px;
 }
 #streak-count{
   font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
   color:#FF9A20;letter-spacing:.08em;
+}
+
+/* ── Yesterday score bar ──────────────────────────────────────── */
+#yesterday-bar{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,220,0,0.08);border:1px solid rgba(255,220,0,0.22);
+  border-radius:99px;padding:4px 14px;margin-bottom:10px;
+}
+#yesterday-label{
+  font-family:'Orbitron',monospace;font-size:10px;font-weight:700;
+  color:#FFD060;letter-spacing:.08em;
 }
 
 /* Idle screen */
@@ -168,6 +179,37 @@ canvas{display:block;position:absolute;top:0;left:0;cursor:crosshair}
   font-size:10px;color:rgba(180,210,230,0.55);letter-spacing:.06em;
   text-align:center;line-height:1.4;
 }
+
+/* ── Death delta & details toggle ────────────────────────────── */
+.death-delta{
+  font-family:'Orbitron',monospace;font-size:clamp(11px,2.8vw,13px);
+  font-weight:700;letter-spacing:.08em;text-align:center;
+  color:rgba(0,255,200,0.82);margin:4px 0 16px;min-height:16px;
+}
+.btn-details-toggle{
+  background:transparent;border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;padding:6px 18px;margin-bottom:10px;
+  font-family:'Orbitron',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.10em;color:rgba(180,210,235,0.65);
+  cursor:pointer;transition:all .18s;pointer-events:auto;
+}
+.btn-details-toggle:hover{border-color:rgba(0,255,200,0.30);color:var(--cyan)}
+
+/* ── Skin unlock banner ───────────────────────────────────────── */
+.unlock-banner{
+  position:fixed;top:22%;left:50%;transform:translateX(-50%);
+  background:rgba(10,12,28,0.92);
+  border:2px solid var(--ub-color,var(--cyan));
+  border-radius:12px;padding:14px 28px;
+  font-family:'Orbitron',monospace;font-size:clamp(13px,3.5vw,18px);
+  font-weight:900;letter-spacing:.10em;
+  color:var(--ub-color,var(--cyan));
+  text-shadow:0 0 20px var(--ub-color,var(--cyan));
+  pointer-events:none;z-index:999;white-space:nowrap;
+  animation:unlockPop .35s cubic-bezier(.34,1.56,.64,1) both, unlockFade 2.8s forwards;
+}
+@keyframes unlockPop{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+@keyframes unlockFade{0%,60%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-18px)}}
 
 /* ── Death screen ─────────────────────────────────────────────── */
 .death-title{font-family:'Orbitron',monospace;font-size:clamp(12px,3vw,16px);letter-spacing:.18em;text-transform:uppercase;color:rgba(220,240,252,0.86);margin-bottom:6px}

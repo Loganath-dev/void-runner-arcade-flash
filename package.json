@@ -5,11 +5,9 @@
   "type": "module",
   "scripts": {
     "dev":   "npx serve . -p 3000",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "node build.js",
+    "preview": "npx serve . -p 4000"
   },
-  "devDependencies": {
-    "vite": "^5.0.0"
-  },
+  "devDependencies": {},
   "note": "NO runtime dependencies allowed in V0.0. devDependencies only for optional build step."
 }

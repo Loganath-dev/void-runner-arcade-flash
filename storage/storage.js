@@ -9,6 +9,7 @@ const K = {
   SKINS:'vr_skins', ACTIVE_SKIN:'vr_active_skin',
   MISSIONS:'vr_missions',
   DAILY_PFX:'vr_daily_',
+  ONFIRE_HINT:'vr_onfire_hint',
 };
 
 export class StorageUtils {
@@ -84,7 +85,13 @@ export class StorageUtils {
   static isMissionDone(id) { return this.getCompletedMissions().includes(id); }
 
   // ── Daily challenge score ───────────────────────────────────────────
-  static _dayKey()         { return K.DAILY_PFX + new Date().toDateString().replace(/ /g, '_'); }
-  static getDailyScore()   { return parseInt(localStorage.getItem(this._dayKey()) || '0', 10); }
-  static setDailyScore(s)  { const k = this._dayKey(); if (s > (parseInt(localStorage.getItem(k)||'0',10))) localStorage.setItem(k, String(s)); }
+  static _dayKey()           { return K.DAILY_PFX + new Date().toDateString().replace(/ /g, '_'); }
+  static _yesterdayKey()     { return K.DAILY_PFX + new Date(Date.now() - 86400000).toDateString().replace(/ /g, '_'); }
+  static getDailyScore()     { return parseInt(localStorage.getItem(this._dayKey()) || '0', 10); }
+  static getYesterdayScore() { return parseInt(localStorage.getItem(this._yesterdayKey()) || '0', 10); }
+  static setDailyScore(s)    { const k = this._dayKey(); if (s > (parseInt(localStorage.getItem(k)||'0',10))) localStorage.setItem(k, String(s)); }
+
+  // ── ON FIRE hint (show once) ────────────────────────────────────────
+  static hasSeenOnFireHint() { return !!localStorage.getItem(K.ONFIRE_HINT); }
+  static setOnFireHintSeen() { localStorage.setItem(K.ONFIRE_HINT, '1'); }
 }

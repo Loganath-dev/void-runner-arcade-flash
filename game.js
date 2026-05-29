@@ -10,16 +10,9 @@ import { AudioManager }   from './audio/audio.js';
 import { StorageUtils }   from './storage/storage.js';
 import { initializeApp }  from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js';
 import { getAnalytics, logEvent as _fbLog } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js';
+import { FIREBASE_CONFIG } from './config.js';
 
-const _fbApp = initializeApp({
-  apiKey:            'AIzaSyC6gTi5XM68cOTPKYsjhnpdInPa3NpmW-M',
-  authDomain:        'arcadeflash-74cff.firebaseapp.com',
-  projectId:         'arcadeflash-74cff',
-  storageBucket:     'arcadeflash-74cff.firebasestorage.app',
-  messagingSenderId: '543521880447',
-  appId:             '1:543521880447:web:afe50c400b205ceedbc24a',
-  measurementId:     'G-DYWD0ZL148',
-});
+const _fbApp      = initializeApp(FIREBASE_CONFIG);
 const _fbAnalytics = getAnalytics(_fbApp);
 
 // ── CRASH HANDLER ─────────────────────────────────────────────────
@@ -103,8 +96,8 @@ function _spawnMeteorWave(atScore) {
 
 // ── SKIN METADATA ────────────────────────────────────────────────
 const SKIN_UNLOCKS = { fire:25, neon:50, shadow:100, chaos:200 };
-const SKIN_LABELS  = { default:'DEFAULT', fire:'FIRE', neon:'NEON', shadow:'SHADOW', chaos:'CHAOS' };
-const SKIN_COLORS  = { default:'#00D4FF', fire:'#FF6600', neon:'#FF00FF', shadow:'#4444AA', chaos:'#FF0000' };
+const SKIN_LABELS  = { default:'DEFAULT', fire:'FIRE', neon:'NEON', shadow:'SHADOW', chaos:'CHAOS', rainbow:'RAINBOW' };
+const SKIN_COLORS  = { default:'#00D4FF', fire:'#FF6600', neon:'#FF00FF', shadow:'#4444AA', chaos:'#FF0000', rainbow:'#FF88FF' };
 
 // ── MISSIONS ─────────────────────────────────────────────────────
 const MISSION_DEFS = [
@@ -187,6 +180,10 @@ let multiBannerTimer = 0;
 // Mute
 let audioMuted = false;
 
+// Beat-yesterday tracking
+let _yesterdayScore    = 0;
+let _beatYesterdayShown = false;
+
 // Thrust edge detection
 let _lastThrustUp = false;
 
@@ -233,17 +230,18 @@ function initSkinSelector() {
   const unlocked = storage.getUnlockedSkins();
   activeSkin = storage.getActiveSkin();
   row.innerHTML = '';
-  ['default','fire','neon','shadow','chaos'].forEach(id => {
+  ['default','fire','neon','shadow','chaos','rainbow'].forEach(id => {
     const isUnlocked = unlocked.includes(id);
     const reqScore   = SKIN_UNLOCKS[id];
+    const isRainbow  = id === 'rainbow';
     const btn = document.createElement('button');
     btn.className   = `skin-btn ${!isUnlocked ? 'locked' : ''} ${activeSkin === id ? 'active' : ''}`;
     btn.dataset.skin = id;
     btn.style.setProperty('--sc', SKIN_COLORS[id]);
-    btn.title = isUnlocked ? SKIN_LABELS[id] : `Unlock at score ${reqScore}`;
+    btn.title = isUnlocked ? SKIN_LABELS[id] : isRainbow ? 'Complete all missions' : `Unlock at score ${reqScore}`;
     btn.innerHTML = isUnlocked
-      ? `<span class="skin-dot-icon">●</span><span class="skin-name">${SKIN_LABELS[id]}</span>`
-      : `<span class="skin-dot-icon">🔒</span><span class="skin-name">${reqScore}</span>`;
+      ? `<span class="skin-dot-icon">${isRainbow ? '🌈' : '●'}</span><span class="skin-name">${SKIN_LABELS[id]}</span>`
+      : `<span class="skin-dot-icon">🔒</span><span class="skin-name">${isRainbow ? 'ALL' : reqScore}</span>`;
     if (isUnlocked) {
       btn.addEventListener('click', () => selectSkin(id));
     }
@@ -264,13 +262,26 @@ function selectSkin(id) {
   initSkinSelector(); // refresh UI
 }
 
+function showUnlockCelebration(skinId, skinLabel, color = 'rgba(255,200,0,0.45)') {
+  doFlash(color, 1400);
+  triggerShake(6, 0.50);
+  audio.milestone();
+  if (navigator.vibrate) navigator.vibrate([40, 30, 80, 30, 120]);
+  const el = document.createElement('div');
+  el.className = 'unlock-banner';
+  const colorHex = SKIN_COLORS[skinId] || '#FFD700';
+  el.style.setProperty('--ub-color', colorHex);
+  el.textContent = `✦ ${skinLabel} SKIN UNLOCKED!`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
 function checkSkinUnlocks(score) {
   const unlocked = storage.getUnlockedSkins();
   Object.entries(SKIN_UNLOCKS).forEach(([id, req]) => {
     if (score >= req && !unlocked.includes(id)) {
       storage.unlockSkin(id);
-      toast(`🛸 UNLOCKED: ${SKIN_LABELS[id]} SKIN!`);
-      doFlash('rgba(255,200,0,0.28)', 600);
+      showUnlockCelebration(id, SKIN_LABELS[id]);
       initSkinSelector();
     }
   });
@@ -285,6 +296,8 @@ function startGame() {
   nearMissCount = 0; lastSector = 1;
   chaosMode = false; shownMilestones = new Set();
   _waveTriggered.clear();
+  _yesterdayScore = storage.getYesterdayScore();
+  _beatYesterdayShown = false;
   _floaters.length = 0;
   sectorBannerText = ''; sectorBannerTimer = 0;
   nearMissCombo = 0; comboTimer = 0; onFire = false;
@@ -431,6 +444,16 @@ function loop(ts) {
 
       checkSkinUnlocks(score);
       checkWaveEvents(score);
+
+      // Beat yesterday banner — fires once per session
+      if (_yesterdayScore > 0 && score >= _yesterdayScore && !_beatYesterdayShown) {
+        _beatYesterdayShown = true;
+        sectorBannerText  = `✦ BEAT YESTERDAY! (${_yesterdayScore})`;
+        sectorBannerTimer = 2.4;
+        doFlash('rgba(255,220,0,0.22)', 700);
+        audio.milestone();
+      }
+
       updateHUD();
     }
 
@@ -499,7 +522,18 @@ function drawGhost() {
   ctx.fillStyle = domeg;
   ctx.beginPath(); ctx.ellipse(gp.x, gp.y - r * 0.32, r * 0.84, r * 0.56, 0, 0, Math.PI * 2); ctx.fill();
 
-  ctx.restore();
+  // Ghost score label
+  const ghostScore = storage.getGhostScore();
+  if (ghostScore > 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.font        = `700 9px 'Orbitron', monospace`;
+    ctx.fillStyle   = '#B8E4FF';
+    ctx.textAlign   = 'center';
+    ctx.fillText(`BEST · ${ghostScore}`, gp.x, gp.y - r * 2.1);
+    ctx.textAlign   = 'left';
+    ctx.restore();
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -542,15 +576,24 @@ function handleNearMiss(type) {
   // ON FIRE combo — 3 consecutive near-misses
   nearMissCombo++;
   comboTimer = 4.5;
+
+  // Show first-time hint after first near-miss
+  if (nearMissCombo === 1 && !onFire && !storage.hasSeenOnFireHint()) {
+    storage.setOnFireHintSeen();
+    setTimeout(() => toast('3 near-misses in a row = ×2 SCORE!'), 800);
+  }
+
   if (nearMissCombo >= 3 && !onFire) {
     onFire = true;
     scoreMultiplier = 2;
     sessionOnFireAchieved = true;
     multiBannerTimer = 3.0;
-    sectorBannerText  = 'ON FIRE!  ×2 SCORE';
-    sectorBannerTimer = 1.8;
-    doFlash('rgba(255,100,0,0.30)', 600);
-    audio.milestone();
+    sectorBannerText  = '🔥 ON FIRE! ×2 SCORE';
+    sectorBannerTimer = 2.2;
+    doFlash('rgba(255,80,0,0.45)', 900);
+    triggerShake(8, 0.55);
+    audio.onFireActivate();
+    if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
   }
   if (type === 'INSANE!!') trackEvent('near_miss_insane', { score });
 }
@@ -667,15 +710,24 @@ function showDeath(isNew, duration) {
   const sector     = getSectorNum(score);
   const sectorName = getSectorName(score);
 
-  document.getElementById('death-score').textContent        = score;
+  document.getElementById('death-score').textContent      = score;
+  document.getElementById('new-best-badge').style.display = isNew ? 'block' : 'none';
+
+  // Delta line — the emotional focus point
+  const deltaEl = document.getElementById('death-delta');
+  if (deltaEl) {
+    if (isNew && score > 0)        deltaEl.textContent = '✦ New personal record!';
+    else if (best > 0 && score > 0) deltaEl.textContent = best - score === 0 ? `Tied your best (${best})` : `${best - score} from your best of ${best}`;
+    else                            deltaEl.textContent = 'The void is calling. One more run.';
+  }
+
+  // Details section
   document.getElementById('death-sector-label').textContent = `SECTOR ${sector} — ${sectorName}`;
   document.getElementById('stat-best').textContent          = best > 0 ? best : '—';
   document.getElementById('stat-closecalls').textContent    = nearMissCount;
   document.getElementById('stat-time').textContent          = duration + 's';
-  document.getElementById('new-best-badge').style.display   = isNew ? 'block' : 'none';
   document.getElementById('death-motivation').textContent   = _getMotivation(score, best, nearMissCount);
 
-  // Next milestone context
   const nextEl = document.getElementById('next-milestone');
   if (nextEl) {
     const nextMs = MILESTONES.find(m => m > score);
@@ -689,6 +741,12 @@ function showDeath(isNew, duration) {
     insaneCount: sessionInsane, onFireAchieved: sessionOnFireAchieved, streak: currentStreak,
   };
   renderMissions(missionStats);
+
+  // Reset details toggle to collapsed
+  const detailsEl = document.getElementById('death-details');
+  const toggleBtn = document.getElementById('btn-details-toggle');
+  if (detailsEl) detailsEl.style.display = 'none';
+  if (toggleBtn) toggleBtn.textContent   = 'Details ▾';
 
   document.getElementById('btn-retry').onclick = () => startGame();
   document.getElementById('btn-share').onclick = () => shareScore(score, best, sector, duration);
@@ -745,12 +803,17 @@ function renderMissions(stats) {
     div.appendChild(stateSpan);
     list.appendChild(div);
   });
-  // If all missions done
+  // If all missions done — unlock rainbow skin
   if (toShow.length === 0) {
     const p = document.createElement('p');
     p.className = 'all-done';
     p.textContent = '✦ All missions complete — Legend!';
     list.appendChild(p);
+    if (!storage.getUnlockedSkins().includes('rainbow')) {
+      storage.unlockSkin('rainbow');
+      showUnlockCelebration('rainbow', 'RAINBOW', 'rgba(180,60,255,0.45)');
+      initSkinSelector();
+    }
   }
 }
 
@@ -942,6 +1005,25 @@ if (streakEl && streakCount > 1) {
 
 initSkinSelector();
 updateHUD();
+
+// Yesterday's score badge on idle screen
+const ydayScore = storage.getYesterdayScore();
+const ydayEl    = document.getElementById('yesterday-bar');
+if (ydayEl && ydayScore > 0) {
+  ydayEl.style.display = 'flex';
+  document.getElementById('yesterday-label').textContent = `Yesterday: ${ydayScore} — Beat it!`;
+}
+
+// Details toggle on death screen
+document.getElementById('btn-details-toggle')?.addEventListener('click', () => {
+  const det = document.getElementById('death-details');
+  const btn = document.getElementById('btn-details-toggle');
+  if (!det) return;
+  const opening = det.style.display === 'none';
+  det.style.display   = opening ? 'flex' : 'none';
+  if (opening) det.style.flexDirection = 'column';
+  btn.textContent = opening ? 'Details ▲' : 'Details ▾';
+});
 
 const muteBtn = document.getElementById('btn-mute');
 if (muteBtn) muteBtn.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });

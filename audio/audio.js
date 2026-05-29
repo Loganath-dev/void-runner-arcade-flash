@@ -645,6 +645,15 @@ export class AudioManager {
     this._play(1760, 'sine', 0.14, 0.18, 0.24);
   }
 
+  onFireActivate() {
+    // Rising power chord — signals the ×2 moment viscerally
+    this._play(220, 'sawtooth', 0.28, 0.38);
+    this._play(330, 'sine',     0.22, 0.32, 0.06);
+    this._play(440, 'sine',     0.26, 0.30, 0.14);
+    this._play(660, 'sine',     0.30, 0.35, 0.24);
+    this._play(880, 'sine',     0.24, 0.28, 0.36);
+  }
+
   // Dynamic pitch and music intensity — both tied to score / 200 now
   setSpeedPitch(score) {
     this._pitch          = 1.0 + Math.min(score / 200, 1.0) * 0.10; // subtle pitch drift
